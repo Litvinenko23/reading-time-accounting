@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class Book(models.Model):
@@ -14,8 +15,12 @@ class Book(models.Model):
 
 
 class ReadingSession(models.Model):
-    # user = models.ForeignKey()
-    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="reading-sessions"
+    )
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="reading-sessions")
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField()
 
