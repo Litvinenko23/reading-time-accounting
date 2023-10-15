@@ -18,9 +18,9 @@ class ReadingSession(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="reading-sessions"
+        related_name="reading_sessions"
     )
-    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="reading-sessions")
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="reading_sessions")
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField()
 
