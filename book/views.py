@@ -1,8 +1,8 @@
 from django.utils import timezone
 
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from book.models import Book, ReadingSession
 from book.serializers import BookDetailSerializer, BookSerializer, ReadingSessionSerializer
@@ -21,41 +21,54 @@ class ReadingSessionViewSet(viewsets.ModelViewSet):
     queryset = ReadingSession.objects.all()
     serializer_class = ReadingSessionSerializer
 
-    @action(detail=True, methods=["post"])
-    def start_reading_session(self, request, pk=None):
-        book = self.get_object()
-        user = request.user
 
-        book_id = int(request.data.get("book_id"))
+class StartReadingSession(APIView):
+    def post(self, request, book_id):
+        # Check if the user is authenticated and get the user instance
+        if not request.user.is_authenticated:
+            return Response({'detail': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        existing_session = ReadingSession.objects.filter(
-            user=user,
-            book_id=book_id,
-            end_time__isnull=True).first()
+        try:
+            book = Book.objects.get(id=book_id)
+        except Book.DoesNotExist:
+            return Response({'detail': 'Book not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        if existing_session:
-            return Response({"error": "Session with this book already started."}, status=status.HTTP_400_BAD_REQUEST)
+        # Check if there's an active reading session for this book
+        active_sessions = ReadingSession.objects.filter(book=book, end_time__isnull=True)
+        if active_sessions.exists():
+            return Response({'detail': 'An active reading session for this book already exists.'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
-        new_session = ReadingSession.objects.create(user=user, book=book)
+        # Find and end the previous session if one exists
+        try:
+            previous_session = ReadingSession.objects.get(user=request.user, end_time__isnull=True)
+            previous_session.end_time = timezone.now()
+            previous_session.save()
+        except ReadingSession.DoesNotExist:
+            pass  # No active session to end
 
-        return Response({"message": "Reading session started successfully."}, status=status.HTTP_200_OK)
+        # Create a new reading session
+        reading_session = ReadingSession(user=request.user, book=book, start_time=timezone.now())
+        reading_session.save()
 
-    def end_reading_session(self, request, pk=None):
-        book = self.get_object()
-        user = request.user
-
-        book_id = int(request.data.get("book_id"))
-
-        session = ReadingSession.objects.filter(
-            user=user,
-            book_id=book_id,
-            end_time__isnull=True).first()
-        if not session:
-            return Response({"error": "No active reading session with this book."}, status=status.HTTP_400_BAD_REQUEST)
-
-        session.end_time = timezone.now()
-        session.save()
-
-        return Response({"message": "Reading session ended successfully."}, status=status.HTTP_200_OK)
+        return Response({'detail': 'Reading session started'}, status=status.HTTP_201_CREATED)
 
 
+class EndReadingSession(APIView):
+    def post(self, request, book_id):
+        # Check if the user is authenticated and get the user instance
+        if not request.user.is_authenticated:
+            return Response({'detail': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            book = Book.objects.get(id=book_id)
+        except Book.DoesNotExist:
+            return Response({'detail': 'Book not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            reading_session = ReadingSession.objects.get(user=request.user, book=book, end_time__isnull=True)
+            reading_session.end_time = timezone.now()
+            reading_session.save()
+            return Response({'detail': 'Reading session ended'}, status=status.HTTP_200_OK)
+        except ReadingSession.DoesNotExist:
+            return Response({'detail': 'No active reading session found'}, status=status.HTTP_404_NOT_FOUND)

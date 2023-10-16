@@ -18,4 +18,4 @@ class BookDetailSerializer(BookSerializer):
 class ReadingSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReadingSession
-        fields = "__all__"
+        fields = ("user", "book")
