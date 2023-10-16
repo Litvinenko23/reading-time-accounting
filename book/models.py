@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db import models
 from django.conf import settings
 
@@ -25,5 +27,12 @@ class ReadingSession(models.Model):
     # end_time = models.DateTimeField(auto_now=True)
     end_time = models.DateTimeField(null=True, blank=True)
 
+    # def duration(self):
+    #     return self.end_time - self.start_time
+
+    @property
     def duration(self):
-        return self.end_time - self.start_time
+        if self.start_time and self.end_time:
+            return self.end_time - self.start_time
+        else:
+            return timedelta(seconds=0)
