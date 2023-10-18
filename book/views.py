@@ -78,6 +78,9 @@ class StartReadingSession(APIView):
         )
         reading_session.save()
 
+        book.last_reading_date = reading_session.start_time
+        book.save()
+
         return Response(
             {"detail": "Reading session started"},
             status=status.HTTP_201_CREATED,
