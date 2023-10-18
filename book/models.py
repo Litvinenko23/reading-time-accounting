@@ -24,11 +24,7 @@ class ReadingSession(models.Model):
     )
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="reading_sessions")
     start_time = models.DateTimeField(auto_now_add=True)
-    # end_time = models.DateTimeField(auto_now=True)
     end_time = models.DateTimeField(null=True, blank=True)
-
-    # def duration(self):
-    #     return self.end_time - self.start_time
 
     @property
     def duration(self):

@@ -8,15 +8,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from book.models import Book, ReadingSession
-from book.serializers import BookDetailSerializer, BookSerializer, ReadingSessionSerializer, BookReadingTimeSerializer
+from book.serializers import BookDetailSerializer, BookSerializer, ReadingSessionSerializer, BookListSerializer
 
 
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
 
     def get_serializer_class(self):
+        if self.action == "list":
+            return BookListSerializer
+
         if self.action == "retrieve":
             return BookDetailSerializer
+
         return BookSerializer
 
 

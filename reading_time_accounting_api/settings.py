@@ -153,6 +153,6 @@ from celery.schedules import crontab
 CELERY_BEAT_SCHEDULE = {
     'update-reading-time-statistics': {
         'task': 'book.tasks.update_reading_time_statistics',
-        'schedule': crontab(),  # Runs at midnight every day
+        'schedule': crontab(hour=0, minute=0),  # Runs at midnight every day
     },
 }
