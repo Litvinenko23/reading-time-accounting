@@ -18,7 +18,10 @@ def update_reading_time_statistics():
             end_time__gte=seven_days_ago,
             end_time__lte=end_date,
         )
-        total_reading_time_7_days = sum([session.duration for session in relevant_sessions_7_days], timedelta())
+        total_reading_time_7_days = sum(
+            [session.duration for session in relevant_sessions_7_days],
+            timedelta(),
+        )
 
         # Calculate total reading time for the last 30 days
         thirty_days_ago = end_date - timedelta(days=30)
@@ -27,10 +30,17 @@ def update_reading_time_statistics():
             end_time__gte=thirty_days_ago,
             end_time__lte=end_date,
         )
-        total_reading_time_30_days = sum([session.duration for session in relevant_sessions_30_days], timedelta())
+        total_reading_time_30_days = sum(
+            [session.duration for session in relevant_sessions_30_days],
+            timedelta(),
+        )
 
         # Update the user's profile with the statistics
-        user.profile.total_reading_time_7_days = total_reading_time_7_days / 1000000
-        user.profile.total_reading_time_30_days = total_reading_time_30_days / 1000000
+        user.profile.total_reading_time_7_days = (
+            total_reading_time_7_days / 1000000
+        )
+        user.profile.total_reading_time_30_days = (
+            total_reading_time_30_days / 1000000
+        )
 
         user.profile.save()
