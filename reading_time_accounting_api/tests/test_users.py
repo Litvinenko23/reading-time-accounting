@@ -15,10 +15,8 @@ def test_user_authentication():
     assert response.status_code == 200
     assert "access" in response.data
 
-    # Use the access token for subsequent requests
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {response.data['access']}")
 
-    # Test user-related views like user profile
     response = client.get("/api/user/me/")
     assert response.status_code == 200
     assert response.data["email"] == user_data["email"]

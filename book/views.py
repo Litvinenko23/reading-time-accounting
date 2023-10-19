@@ -36,7 +36,6 @@ class ReadingSessionViewSet(viewsets.ModelViewSet):
 
 class StartReadingSession(APIView):
     def post(self, request, book_id):
-        # Check if the user is authenticated and get the user instance
         if not request.user.is_authenticated:
             return Response(
                 {"detail": "Authentication required"},
@@ -50,7 +49,6 @@ class StartReadingSession(APIView):
                 {"detail": "Book not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
-        # Check if there's an active reading session for this book
         active_sessions = ReadingSession.objects.filter(
             book=book, end_time__isnull=True
         )
@@ -62,7 +60,6 @@ class StartReadingSession(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Find and end the previous session if one exists
         try:
             previous_session = ReadingSession.objects.get(
                 user=request.user, end_time__isnull=True
@@ -70,9 +67,8 @@ class StartReadingSession(APIView):
             previous_session.end_time = timezone.now()
             previous_session.save()
         except ReadingSession.DoesNotExist:
-            pass  # No active session to end
+            pass
 
-        # Create a new reading session
         reading_session = ReadingSession(
             user=request.user, book=book, start_time=timezone.now()
         )
@@ -89,7 +85,6 @@ class StartReadingSession(APIView):
 
 class EndReadingSession(APIView):
     def post(self, request, book_id):
-        # Check if the user is authenticated and get the user instance
         if not request.user.is_authenticated:
             return Response(
                 {"detail": "Authentication required"},
@@ -138,10 +133,9 @@ class TotalReadingTime(APIView):
 class UserStatistics(APIView):
     def get(self, request):
         if request.user.is_authenticated:
-            user = request.user  # Get the currently authenticated user
+            user = request.user
             reading_sessions = ReadingSession.objects.filter(user=user)
 
-            # Calculate total_reading_time for the user
             total_duration = sum(
                 (session.duration for session in reading_sessions), timedelta()
             )
